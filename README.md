@@ -71,30 +71,25 @@ make build
 
 ### First Run
 
-1. **Download a Whisper model** (required on first use):
-```bash
-./transcriber download [--model ggml-base]
-```
+1. **Install whisper-cli** if not already done.
+   See [prerequisites](#prerequisites)
 
-Available models:
-- `ggml-tiny`
-- `ggml-base`
-- `ggml-small`
-- `ggml-medium`
-- `ggml-large`
-- `ggml-large-v3-turbo-q5_0` (recommended for best performance)
+2. **Download a Whisper model** (required on first use):
+```bash
+transcriber download
+```
+You can specify custom model using `--model` option. Available models are found in the [whisper.cpp HF models](https://huggingface.co/ggerganov/whisper.cpp/tree/main)
 
 You can also specify a custom model path in the configuration file.
 
-
-2. **Start transcribing**:
+3. **Start transcribing**:
 ```bash
-./transcriber run --output ./transcriptions
+transcriber run --output ./transcriptions
 ```
 
-3. **Check your configuration**:
+4. **Check your configuration**:
 ```bash
-./transcriber config
+transcriber config
 ```
 
 ## 📖 Usage Guide
@@ -125,18 +120,6 @@ transcriber run --duration 5m --output ./my-transcriptions
 transcriber run --config ./custom-config --duration 1h
 ```
 
-### Batch Processing
-
-Process existing MP3 files:
-
-```bash
-# Process all MP3s in a directory
-transcriber process --input ./recordings --output ./transcriptions
-
-# With custom config
-transcriber process --input ./audio --output ./text --config ./config
-```
-
 ### Model Management
 
 Download and manage Whisper models:
@@ -144,14 +127,10 @@ Download and manage Whisper models:
 ```bash
 # Download specific model
 transcriber download --model ggml-large-v3-turbo-q5_0
-
-# Available models (by size/quality):
-transcriber download --model ggml-tiny      # Fastest, least accurate
-transcriber download --model ggml-base      # Good balance
-transcriber download --model ggml-small     # Better accuracy
-transcriber download --model ggml-medium    # High accuracy
-transcriber download --model ggml-large     # Best accuracy, slower
 ```
+
+Available models are found in the [whisper.cpp HF models](https://huggingface.co/ggerganov/whisper.cpp/tree/main)
+
 
 ## ⚙️ Configuration
 
@@ -159,23 +138,27 @@ The configuration file is automatically created at `~/.transcriber/config.json`:
 
 ```json
 {
-  "model_path": "~/.transcriber/models/ggml-base.bin",
+  "model_path": "~/.transcriber/models/ggml-large-v3-turbo-q5_0.bin",
+  "language": "English",
+  "temp_dir": "/tmp/transcriber",
   "output_format": "txt",
-  "language": "auto",
-  "temperature": 0.0,
-  "max_duration": "30m",
-  "audio_quality": "high"
+  "whisper_cmd": "whisper-cli",
+  "recording_cmd": "ffmpeg",
+  "chunk_duration_in_secs": 30,
+  "min_required_unique_word_count": 5
 }
 ```
 
 ### Configuration Options
 
 - **model_path**: Path to the Whisper model file
-- **output_format**: Output format (`txt`, `srt`, `vtt`, `json`)
-- **language**: Target language (`auto` for auto-detection)
-- **temperature**: Sampling temperature (0.0-1.0)
-- **max_duration**: Maximum recording duration
-- **audio_quality**: Recording quality (`low`, `medium`, `high`)
+- **language**: Language for transcription (e.g., "English", "Spanish", "auto")
+- **temp_dir**: Directory for temporary audio files during processing
+- **output_format**: Output format (`txt`, `json`)
+- **whisper_cmd**: Command to use for Whisper transcription (default: "whisper-cli")
+- **recording_cmd**: Command to use for audio recording (default: "ffmpeg")
+- **chunk_duration_in_secs**: Duration in seconds for each audio chunk during real-time transcription (default: 30)
+- **min_required_unique_word_count**: Minimum number of unique words required to process a chunk (default: 5)
 
 ## 🛠️ Development Guide
 
