@@ -1,6 +1,6 @@
 # 🎙️ Transcriber
 
-> A powerful Go-based audio transcription tool powered by whisper.cpp, designed for real-time transcription and batch processing of audio files.
+> A Go-based audio transcription tool powered by whisper.cpp, designed for real-time transcription.
 
 [![GitHub Stars](https://img.shields.io/github/stars/nnanto/transcriber.svg?style=social)](https://github.com/nnanto/transcriber/stargazers)
 
