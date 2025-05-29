@@ -1,6 +1,8 @@
 # 🎙️ Transcriber
 
-> A powerful Go-based audio transcription tool powered by OpenAI Whisper
+> A powerful Go-based audio transcription tool powered by whisper.cpp, designed for real-time transcription and batch processing of audio files.
+
+[![GitHub Stars](https://img.shields.io/github/stars/nnanto/transcriber.svg?style=social)](https://github.com/nnanto/transcriber/stargazers)
 
 [![Go Version](https://img.shields.io/badge/Go-1.19+-blue.svg)](https://golang.org)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
