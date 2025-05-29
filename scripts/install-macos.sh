@@ -20,4 +20,4 @@ chmod +x /usr/local/bin/transcriber
 transcriber version
 
 # Download model
-transcriber download
+transcriber download-model
