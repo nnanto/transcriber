@@ -291,19 +291,7 @@ func (t *Transcriber) runTranscribe(outputDir string, removeAudioFileOnSuccess b
 
 		// Record this chunk
 		if err := t.recordAudio(audioFile, chunkDuration); err != nil {
-			// Check if error was due to interrupt
-			select {
-			case <-sigChan:
-				fmt.Println("\nRecording interrupted. Stopping transcription...")
-				close(audioFileChan)
-				<-transcriptionDone
-				if chunkNum > 1 {
-					fmt.Printf("Transcription saved to: %s.%s\n", outputPath, t.config.OutputFormat)
-				}
-				return nil
-			default:
-				return fmt.Errorf("recording error for chunk %d: %v", chunkNum, err)
-			}
+			return fmt.Errorf("recording error for chunk %d: %v", chunkNum, err)
 		}
 
 		// Send audio file for transcription (non-blocking)
