@@ -39,5 +39,6 @@ ehthumbs.db
 Thumbs.db
 
 # Config files (if sensitive)
-.transcriber/
+transcriber
 config.json
+run_*

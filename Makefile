@@ -51,7 +51,7 @@ dev:
 	go build -race $(LDFLAGS) -o $(BINARY_NAME) .
 
 newtag:
-	@echo "Creating new tag..."
+	@echo "Creating new tag...Last tag: $(VERSION)"
 	@read -p "Enter new version tag (e.g., v1.0.0): " new_tag; \
 	if [ -z "$$new_tag" ]; then \
 		echo "Tag cannot be empty"; \
