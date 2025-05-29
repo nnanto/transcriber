@@ -49,3 +49,14 @@ install: build
 # Development build with race detection
 dev:
 	go build -race $(LDFLAGS) -o $(BINARY_NAME) .
+
+newtag:
+	@echo "Creating new tag..."
+	@read -p "Enter new version tag (e.g., v1.0.0): " new_tag; \
+	if [ -z "$$new_tag" ]; then \
+		echo "Tag cannot be empty"; \
+		exit 1; \
+	fi; \
+	git tag "$$new_tag"; \
+	git push origin "$$new_tag"; \
+	echo "Tag $$new_tag created and pushed."
