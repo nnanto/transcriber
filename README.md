@@ -20,9 +20,13 @@
 
 ### Prerequisites
 
-- Install whisper-cli
+- Install `whisper-cli`
   - Mac OS: `brew install whisper-cpp`
   - Other OS: Follow the [whisper.cpp installation guide](https://github.com/ggml-org/whisper.cpp?tab=readme-ov-file#quick-start)
+- Install `ffmpeg` for audio recording
+  - Mac OS: `brew install ffmpeg`
+  - Linux: Use your package manager (e.g., `apt install ffmpeg`)
+  - Windows: Download from [FFmpeg official site](https://ffmpeg.org/download.html)
 - Audio recording capabilities (microphone)
 - At least 4GB RAM (recommended for larger models)
 
@@ -30,6 +34,11 @@
 
 #### Option 1: Download pre-built binary (Recommended)
 Download the latest release for your platform from [GitHub Releases](https://github.com/nnanto/transcriber/releases):
+
+**One-line MacOS installation**
+```bash
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/nnanto/transcriber/main/scripts/install-macos.sh)"
+```
 
 **Linux/macOS:**
 ```bash
