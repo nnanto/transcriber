@@ -5,31 +5,48 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"os/exec"
+	"path/filepath"
 	"runtime"
-	"time"
+	"strconv"
+	"strings"
 )
+
+// Version is set at build time via ldflags
+var version = "dev"
 
 func printUsage() {
 	fmt.Printf("Usage: %s <command> [options]\n\n", os.Args[0])
 	fmt.Println("Commands:")
-	fmt.Println("  quick     Quick transcribe mode - record and transcribe immediately")
+	fmt.Println("  run       Run transcribe mode - record and transcribe immediately")
 	fmt.Println("  process   Process existing MP3 files in a directory")
 	fmt.Println("  config    Show current configuration and config file location")
+	fmt.Println("  download  Download a Whisper model")
+	fmt.Println("  stop      Find and stop all running transcriber processes")
+	fmt.Println("  version   Show version information")
 	fmt.Println("  help      Show this help message")
 	fmt.Println("\nOptions:")
-	fmt.Println("  -output string")
+	fmt.Println("  --output string")
 	fmt.Println("        Output directory for transcriptions (default \".\")")
-	fmt.Println("  -input string")
+	fmt.Println("  --input string")
 	fmt.Println("        Input directory for processing (defaults to temp directory)")
-	fmt.Println("  -config string")
-	fmt.Println("        Path to configuration file (defaults to standard config location)")
-	fmt.Println("  -duration string")
-	fmt.Println("        Recording duration for quick mode (e.g., 30s, 2m, 1h) (default \"30m\")")
+	fmt.Println("  --config string")
+	fmt.Println("        Path to configuration file (defaults to standard config location ~/.transcriber/)")
+	fmt.Println("  --duration string")
+	fmt.Println("        Recording duration for run mode (e.g., 30s, 2m, 1h) (default \"30m\")")
+	fmt.Println("  --model string")
+	fmt.Println("        Model name to download (default \"ggml-large-v3-turbo-q5_0\")")
 	fmt.Println("\nExamples:")
-	fmt.Printf("  %s quick -output ./transcriptions\n", os.Args[0])
-	fmt.Printf("  %s quick -duration 2m -output ./transcriptions\n", os.Args[0])
+	fmt.Printf("  %s run --output ./transcriptions\n", os.Args[0])
+	fmt.Printf("  %s run --duration 2m --output ./transcriptions\n", os.Args[0])
 	fmt.Printf("  %s config\n", os.Args[0])
-	fmt.Printf("  %s process -input /tmp/audio -output ./transcriptions\n", os.Args[0])
+	fmt.Printf("  %s download --model base\n", os.Args[0])
+	fmt.Printf("  %s process --input /tmp/audio --output ./transcriptions\n", os.Args[0])
+}
+
+func printVersion() {
+	fmt.Printf("%s version %s\n", filepath.Base(os.Args[0]), version)
+	fmt.Printf("Built with %s %s/%s\n", runtime.Version(), runtime.GOOS, runtime.GOARCH)
 }
 
 func printProcessInfo() {
@@ -43,6 +60,86 @@ func printProcessInfo() {
 	} else {
 		fmt.Printf("To gracefully exit: kill -TERM %d\n", pid)
 	}
+}
+
+func killAllProcesses() error {
+	var cmd *exec.Cmd
+	var err error
+
+	if runtime.GOOS == "windows" {
+		// Windows: use tasklist and taskkill
+		cmd = exec.Command("tasklist", "/FI", "IMAGENAME eq transcriber*", "/FO", "CSV", "/NH")
+	} else {
+		// Unix-like: use ps and grep
+		cmd = exec.Command("ps", "aux")
+	}
+
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to list processes: %v", err)
+	}
+
+	var pids []string
+	currentPID := os.Getpid()
+
+	if runtime.GOOS == "windows" {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "transcriber") {
+				fields := strings.Split(line, ",")
+				if len(fields) >= 2 {
+					pid := strings.Trim(fields[1], "\"")
+					if pidInt, err := strconv.Atoi(pid); err == nil && pidInt != currentPID {
+						pids = append(pids, pid)
+					}
+				}
+			}
+		}
+	} else {
+		lines := strings.Split(string(output), "\n")
+		for _, line := range lines {
+			if strings.Contains(line, "transcriber") && !strings.Contains(line, "grep") {
+				fields := strings.Fields(line)
+				if len(fields) >= 2 {
+					if pidInt, err := strconv.Atoi(fields[1]); err == nil && pidInt != currentPID {
+						pids = append(pids, fields[1])
+					}
+				}
+			}
+		}
+	}
+
+	if len(pids) == 0 {
+		fmt.Println("No other transcriber processes found running.")
+		return nil
+	}
+
+	fmt.Printf("Found %d transcriber process(es) to kill: %v\n", len(pids), pids)
+
+	for _, pid := range pids {
+		var killCmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			killCmd = exec.Command("taskkill", "/PID", pid, "/T", "/F")
+		} else {
+			killCmd = exec.Command("kill", "-TERM", pid)
+		}
+
+		if err := killCmd.Run(); err != nil {
+			fmt.Printf("Failed to kill process %s: %v\n", pid, err)
+		} else {
+			fmt.Printf("Successfully killed process %s\n", pid)
+		}
+	}
+
+	return nil
+}
+
+func getDefaultConfigPath() string {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		return ".transcriber"
+	}
+	return filepath.Join(homeDir, ".transcriber")
 }
 
 func main() {
@@ -60,11 +157,20 @@ func main() {
 		return
 	}
 
+	// Check for version command
+	if command == "version" || command == "-version" || command == "--version" {
+		printVersion()
+		return
+	}
+
 	// Validate command
 	validCommands := map[string]bool{
-		"quick":   true,
-		"process": true,
-		"config":  true,
+		"run":      true,
+		"process":  true,
+		"config":   true,
+		"download": true,
+		"stop":     true,
+		"version":  true,
 	}
 
 	if !validCommands[command] {
@@ -77,9 +183,8 @@ func main() {
 	flagSet := flag.NewFlagSet(command, flag.ExitOnError)
 	var (
 		outputDir  = flagSet.String("output", ".", "Output directory for transcriptions")
-		inputDir   = flagSet.String("input", "", "Input directory for processing (defaults to temp directory)")
-		configPath = flagSet.String("config", "", "Path to configuration file (defaults to standard config location)")
-		duration   = flagSet.Duration("duration", 30*time.Minute, "Recording duration for quick mode (e.g., 30s, 2m, 1h)")
+		configPath = flagSet.String("config", getDefaultConfigPath(), "Path to configuration file (defaults to ~/.transcriber/)")
+		modelName  = flagSet.String("model", "ggml-large-v3-turbo-q5_0", "Model name to download")
 	)
 
 	flagSet.Usage = printUsage
@@ -92,21 +197,11 @@ func main() {
 	}
 
 	switch command {
-	case "quick":
-		printProcessInfo()
-		fmt.Printf("Recording duration: %v\n", *duration)
-		if err := transcriber.QuickTranscribe(*outputDir, false, int(duration.Seconds())); err != nil {
-			fmt.Printf("Error in quick transcribe: %v\n", err)
-			os.Exit(1)
-		}
 
-	case "process":
-		processInputDir := *inputDir
-		if processInputDir == "" {
-			processInputDir = transcriber.GetTempDir()
-		}
-		if err := transcriber.ProcessFiles(processInputDir, *outputDir); err != nil {
-			fmt.Printf("Error processing files: %v\n", err)
+	case "run":
+		printProcessInfo()
+		if err := transcriber.RunTranscribe(*outputDir, true); err != nil {
+			fmt.Printf("Error in run transcribe: %v\n", err)
 			os.Exit(1)
 		}
 
@@ -116,5 +211,32 @@ func main() {
 		fmt.Printf("Current configuration:\n%s\n\n", string(configJSON))
 		fmt.Printf("Config file location: %s\n", transcriber.GetConfigPath())
 		fmt.Println("To update configuration, edit the config file directly and restart the application.")
+
+	case "download":
+		// make configPath directory if it doesn't exist
+		configDir := filepath.Dir(*configPath)
+		if err := os.MkdirAll(configDir, 0755); err != nil {
+			fmt.Printf("Error creating config directory: %v\n", err)
+			os.Exit(1)
+		}
+		if err := downloadModel(*modelName, configDir); err != nil {
+			fmt.Printf("Error downloading model: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Update config to point to the downloaded model
+		modelPath := filepath.Join(configDir, "models", *modelName+".bin")
+		transcriber.config.ModelPath = modelPath
+		if err := transcriber.SaveConfig(); err != nil {
+			fmt.Printf("Error saving updated configuration: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Printf("Updated configuration to use model: %s\n", modelPath)
+
+	case "stop":
+		if err := killAllProcesses(); err != nil {
+			fmt.Printf("Error stopping processes: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }
