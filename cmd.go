@@ -19,7 +19,6 @@ func printUsage() {
 	fmt.Printf("Usage: %s <command> [options]\n\n", os.Args[0])
 	fmt.Println("Commands:")
 	fmt.Println("  run       Run transcribe mode - record and transcribe immediately")
-	fmt.Println("  process   Process existing MP3 files in a directory")
 	fmt.Println("  config    Show current configuration and config file location")
 	fmt.Println("  download  Download a Whisper model")
 	fmt.Println("  stop      Find and stop all running transcriber processes")
@@ -41,7 +40,6 @@ func printUsage() {
 	fmt.Printf("  %s run --duration 2m --output ./transcriptions\n", os.Args[0])
 	fmt.Printf("  %s config\n", os.Args[0])
 	fmt.Printf("  %s download --model base\n", os.Args[0])
-	fmt.Printf("  %s process --input /tmp/audio --output ./transcriptions\n", os.Args[0])
 }
 
 func printVersion() {
@@ -214,18 +212,18 @@ func main() {
 
 	case "download":
 		// make configPath directory if it doesn't exist
-		configDir := filepath.Dir(*configPath)
-		if err := os.MkdirAll(configDir, 0755); err != nil {
+		println("Config directory:", *configPath)
+		if err := os.MkdirAll(*configPath, 0755); err != nil {
 			fmt.Printf("Error creating config directory: %v\n", err)
 			os.Exit(1)
 		}
-		if err := downloadModel(*modelName, configDir); err != nil {
+		if err := downloadModel(*modelName, *configPath); err != nil {
 			fmt.Printf("Error downloading model: %v\n", err)
 			os.Exit(1)
 		}
 
 		// Update config to point to the downloaded model
-		modelPath := filepath.Join(configDir, "models", *modelName+".bin")
+		modelPath := filepath.Join(*configPath, *modelName+".bin")
 		transcriber.config.ModelPath = modelPath
 		if err := transcriber.SaveConfig(); err != nil {
 			fmt.Printf("Error saving updated configuration: %v\n", err)

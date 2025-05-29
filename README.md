@@ -20,7 +20,9 @@
 
 ### Prerequisites
 
-- Go 1.19 or later
+- Install whisper-cli
+  - Mac OS: `brew install whisper-cpp`
+  - Other OS: Follow the [whisper.cpp installation guide](https://github.com/ggml-org/whisper.cpp?tab=readme-ov-file#quick-start)
 - Audio recording capabilities (microphone)
 - At least 4GB RAM (recommended for larger models)
 
@@ -33,11 +35,11 @@ Download the latest release for your platform from [GitHub Releases](https://git
 ```bash
 # Download and install (replace VERSION with latest version, e.g., v1.0.0)
 curl -L https://github.com/nnanto/transcriber/releases/download/VERSION/transcriber-linux-amd64.tar.gz | tar -xz
-sudo mv transcriber /usr/local/bin/
+sudo mv transcriber-* /usr/local/bin/transcriber
 
 # Or for macOS
 curl -L https://github.com/nnanto/transcriber/releases/download/VERSION/transcriber-darwin-amd64.tar.gz | tar -xz
-sudo mv transcriber /usr/local/bin/
+sudo mv transcriber-* /usr/local/bin/transcriber
 
 # Make executable
 chmod +x /usr/local/bin/transcriber
@@ -221,7 +223,7 @@ make release-local
 #### "Model not found" error
 ```bash
 # Download the required model first
-transcriber download --model ggml-base
+transcriber download [--model ggml-base]
 ```
 
 #### Permission denied on macOS/Linux
