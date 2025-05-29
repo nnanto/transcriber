@@ -130,7 +130,6 @@ func (t *Transcriber) ensureTempDir() error {
 
 // Remove the recordAudio method and replace with simpler recording
 func (t *Transcriber) recordAudio(outputFile string, duration int) error {
-	fmt.Printf("Recording audio to %s...\n", outputFile)
 	return t.recorder.Record(outputFile, duration)
 }
 
@@ -157,7 +156,6 @@ func (t *Transcriber) transcribeAudioChunk(audioFile, outputPath string, chunkNu
 		os.Remove(audioFile)
 	}
 
-	fmt.Printf("Processed chunk %d\n", chunkNum)
 	return nil
 }
 
@@ -232,13 +230,16 @@ func (t *Transcriber) runTranscribe(outputDir string, removeAudioFileOnSuccess b
 		return fmt.Errorf("failed to create output directory: %v", err)
 	}
 
+	fmt.Printf("\n📝 Run this for Live transcription every %v secs: `tail -f %s.%s`\n\n",
+		t.config.ChunkDurationInSecs, outputPath, t.config.OutputFormat)
+
 	// Set up signal handling for graceful shutdown
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	fmt.Printf("Starting chunked transcription. Chunk size: %d seconds\n",
 		t.config.ChunkDurationInSecs)
-	fmt.Println("Press Ctrl+C to stop recording early.")
+	fmt.Println("Press Ctrl+C to stop recording.")
 
 	// Channel to communicate audio files for transcription
 	audioFileChan := make(chan string, 2) // Buffer for 2 files
@@ -275,7 +276,7 @@ func (t *Transcriber) runTranscribe(outputDir string, removeAudioFileOnSuccess b
 			close(audioFileChan) // Stop sending new files for transcription
 			<-transcriptionDone  // Wait for transcription to finish
 			if chunkNum > 1 {
-				fmt.Printf("Partial transcription saved to: %s.%s\n", outputPath, t.config.OutputFormat)
+				fmt.Printf("Transcription saved to: %s.%s\n", outputPath, t.config.OutputFormat)
 			}
 			return nil
 		default:
@@ -286,7 +287,7 @@ func (t *Transcriber) runTranscribe(outputDir string, removeAudioFileOnSuccess b
 
 		audioFile := filepath.Join(t.config.TempDir, fmt.Sprintf("chunk_%s_%d.mp3", sessionID, chunkNum))
 
-		fmt.Printf("Recording chunk %d (%d seconds)...\n", chunkNum, chunkDuration)
+		fmt.Printf("Recording chunk %d (every %d seconds)...\n", chunkNum, chunkDuration)
 
 		// Record this chunk
 		if err := t.recordAudio(audioFile, chunkDuration); err != nil {
@@ -297,7 +298,7 @@ func (t *Transcriber) runTranscribe(outputDir string, removeAudioFileOnSuccess b
 				close(audioFileChan)
 				<-transcriptionDone
 				if chunkNum > 1 {
-					fmt.Printf("Partial transcription saved to: %s.%s\n", outputPath, t.config.OutputFormat)
+					fmt.Printf("Transcription saved to: %s.%s\n", outputPath, t.config.OutputFormat)
 				}
 				return nil
 			default:
