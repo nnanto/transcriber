@@ -52,17 +52,19 @@ jobs:
         body: |
           ## Changes
           
-          See [CHANGELOG.md](CHANGELOG.md) for details.
-          
           ## Installation
           
           Download the appropriate binary for your platform and add it to your PATH.
           
           ### Linux/macOS
-          ```bash
-          tar -xzf transcriber-*.tar.gz
-          sudo mv transcriber-* /usr/local/bin/transcriber
-          ```
+            ```bash
+            curl -L https://github.com/nnanto/transcriber/releases/download/${{ steps.version.outputs.VERSION }}/transcriber-linux-amd64.tar.gz | tar -xz
+            sudo mv transcriber-* /usr/local/bin/transcriber
+
+            # Or for macOS
+            curl -L https://github.com/nnanto/transcriber/releases/download/${{ steps.version.outputs.VERSION }}/transcriber-darwin-amd64.tar.gz | tar -xz
+            sudo mv transcriber-* /usr/local/bin/transcriber
+            ```
           
           ### Windows
           Extract the zip file and add the executable to your PATH.
