@@ -20,7 +20,7 @@ func printUsage() {
 	fmt.Println("Commands:")
 	fmt.Println("  run       Run transcribe mode - record and transcribe immediately")
 	fmt.Println("  config    Show current configuration and config file location")
-	fmt.Println("  download  Download a Whisper model")
+	fmt.Println("  download-model  Download a Whisper model")
 	fmt.Println("  stop      Find and stop all running transcriber processes")
 	fmt.Println("  version   Show version information")
 	fmt.Println("  help      Show this help message")
@@ -39,7 +39,7 @@ func printUsage() {
 	fmt.Printf("  %s run --output ./transcriptions\n", os.Args[0])
 	fmt.Printf("  %s run --duration 2m --output ./transcriptions\n", os.Args[0])
 	fmt.Printf("  %s config\n", os.Args[0])
-	fmt.Printf("  %s download --model base\n", os.Args[0])
+	fmt.Printf("  %s download-model --model base\n", os.Args[0])
 }
 
 func printVersion() {
@@ -163,12 +163,11 @@ func main() {
 
 	// Validate command
 	validCommands := map[string]bool{
-		"run":      true,
-		"process":  true,
-		"config":   true,
-		"download": true,
-		"stop":     true,
-		"version":  true,
+		"run":            true,
+		"config":         true,
+		"download-model": true,
+		"stop":           true,
+		"version":        true,
 	}
 
 	if !validCommands[command] {
@@ -210,7 +209,7 @@ func main() {
 		fmt.Printf("Config file location: %s\n", transcriber.GetConfigPath())
 		fmt.Println("To update configuration, edit the config file directly and restart the application.")
 
-	case "download":
+	case "download-model":
 		// make configPath directory if it doesn't exist
 		println("Config directory:", *configPath)
 		if err := os.MkdirAll(*configPath, 0755); err != nil {

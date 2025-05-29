@@ -1,6 +1,6 @@
 # 🎙️ Transcriber
 
-> A Go-based audio transcription tool powered by whisper.cpp, designed for real-time transcription.
+> CLI for audio transcription tool powered by whisper.cpp, designed for real-time transcription.
 
 [![GitHub Stars](https://img.shields.io/github/stars/nnanto/transcriber.svg?style=social)](https://github.com/nnanto/transcriber/stargazers)
 
@@ -42,12 +42,12 @@ sh -c "$(curl -fsSL https://raw.githubusercontent.com/nnanto/transcriber/main/sc
 
 **Linux/macOS:**
 ```bash
-# Download and install (replace VERSION with latest version, e.g., v1.0.0)
-curl -L https://github.com/nnanto/transcriber/releases/download/VERSION/transcriber-linux-amd64.tar.gz | tar -xz
+# Download and install 
+curl -L https://github.com/nnanto/transcriber/releases/download/latest/transcriber-linux-amd64.tar.gz | tar -xz
 sudo mv transcriber-* /usr/local/bin/transcriber
 
 # Or for macOS
-curl -L https://github.com/nnanto/transcriber/releases/download/VERSION/transcriber-darwin-amd64.tar.gz | tar -xz
+curl -L https://github.com/nnanto/transcriber/releases/download/latest/transcriber-darwin-amd64.tar.gz | tar -xz
 sudo mv transcriber-* /usr/local/bin/transcriber
 
 # Make executable
@@ -85,7 +85,7 @@ make build
 
 2. **Download a Whisper model** (required on first use):
 ```bash
-transcriber download
+transcriber download-model
 ```
 You can specify custom model using `--model` option. Available models are found in the [whisper.cpp HF models](https://huggingface.co/ggerganov/whisper.cpp/tree/main)
 
@@ -110,7 +110,7 @@ transcriber config
 | `run` | Record and transcribe in real-time | `transcriber run --duration 2m` |
 | `process` | Process existing audio files | `transcriber process --input ./audio` |
 | `config` | Show current configuration | `transcriber config` |
-| `download` | Download Whisper models | `transcriber download --model large` |
+| `download` | Download Whisper models | `transcriber download-model --model large` |
 | `stop` | Stop all running processes | `transcriber stop` |
 | `version` | Show version info | `transcriber version` |
 
@@ -135,7 +135,7 @@ Download and manage Whisper models:
 
 ```bash
 # Download specific model
-transcriber download --model ggml-large-v3-turbo-q5_0
+transcriber download-model --model ggml-large-v3-turbo-q5_0
 ```
 
 Available models are found in the [whisper.cpp HF models](https://huggingface.co/ggerganov/whisper.cpp/tree/main)
@@ -215,7 +215,7 @@ make release-local
 #### "Model not found" error
 ```bash
 # Download the required model first
-transcriber download [--model ggml-base]
+transcriber download-model [--model ggml-base]
 ```
 
 #### Permission denied on macOS/Linux

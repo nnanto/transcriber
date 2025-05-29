@@ -43,6 +43,12 @@ jobs:
         tar -czf transcriber-darwin-arm64.tar.gz transcriber-darwin-arm64
         zip transcriber-windows-amd64.zip transcriber-windows-amd64.exe
 
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-artifacts
+        path: dist/
+
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
@@ -76,6 +82,12 @@ jobs:
     needs: release
     steps:
     - uses: actions/checkout@v4
+
+    - name: Download artifacts
+      uses: actions/download-artifact@v3
+      with:
+        name: release-artifacts
+        path: dist/
 
     - name: Delete existing latest release
       run: |
